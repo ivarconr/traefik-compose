@@ -1,0 +1,26 @@
+version: "3.7"
+
+services:
+  traefik:
+    image: "traefik:latest"
+    command:
+      # - "--entrypoints.web.http.headers.customResponseHeaders.X-Served-By=Traefik"
+      # - "--accesslog=true"
+      # - "--api.insecure=true"
+      # - "--providers.docker=true"
+      # - "--entrypoints.web.address=:8000"
+      - "--configFile=/etc/traefik/traefik.yml"
+    ports:
+      # The HTTP port
+      - "8000:8000"
+      # The Traefik dashboard
+      - "8080:8080"
+    volumes:
+      - "./traefik.yml:/etc/traefik/traefik.yml:ro"
+      # So that Traefik can listen to the Docker events
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - web
+networks:
+  web:
+    external: true

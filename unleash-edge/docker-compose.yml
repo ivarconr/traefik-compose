@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  unleash-edge:
+    #image: unleashorg/unleash-edge:latest
+    image: docker.io/library/unleash-edge:latest
+    ports:
+      - "3000:3000"
+    environment:
+      RUST_LOG: 'debug,unleash_edge=debug'
+      #STRICT: 'true'
+      UPSTREAM_URL: 'http://192.168.49.1:4242'
+      EDGE_KEEPALIVE_TIMEOUT: 6000
+      EDGE_REQUEST_TIMEOUT: 6000
+      WORKERS: 1
+      TOKENS: 'xxx'
+      FEATURES_REFRESH_INTERVAL_SECONDS: 1
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.edge.rule=Host(`edge.localhost`)"
+      - "traefik.http.services.edge.loadbalancer.server.port=3000"
+      - "traefik.http.services.edge.loadbalancer.responseForwarding.flushInterval=-1"
+      - "traefik.http.middlewares.edge-retry.retry.attempts=3"
+      - "traefik.http.middlewares.edge-retry.retry.initialInterval=200ms"
+
+      # --- APPLY the middleware (no @file suffix needed) ---
+      - "traefik.http.routers.edge.middlewares=edge-retry"
+    networks:
+      - web
+networks:
+  web:
+    external: true
